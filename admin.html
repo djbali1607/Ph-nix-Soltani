@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111">
+<title>Firma Soltani – Admin</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#111;color:#fff;font-family:Arial,sans-serif;max-width:900px;margin:auto;padding:16px}
+h1,h2{margin:8px 0 18px}
+.card{background:#202636;border-radius:12px;padding:14px;margin:10px 0}
+input,select{width:100%;padding:11px;margin:5px 0;border-radius:8px;border:1px solid #555;font-size:16px}
+button{padding:12px 15px;border:0;border-radius:9px;font-weight:700;font-size:15px;margin:4px 0}
+.primary{background:#4caf50;color:#071007} .danger{background:#b3261e;color:#fff} .back{background:#303642;color:#fff}
+.row{display:flex;gap:8px} .row>*{flex:1}
+.small{font-size:13px;color:#b8c0cf}
+.hidden{display:none}
+.badge{display:inline-block;padding:5px 8px;border-radius:7px;background:#333}
+</style>
+</head>
+<body>
+<h1>Firma Soltani – Admin</h1>
+<div id="login" class="card">
+  <h2>Admin-Zugang</h2>
+  <p class="small">Standard-PIN: <b>soltani</b>. Du kannst sie unten ändern.</p>
+  <input id="pin" type="password" placeholder="Admin-PIN">
+  <button class="primary" id="loginBtn">Anmelden</button>
+</div>
+
+<div id="panel" class="hidden">
+  <div class="card">
+    <h2>Tour</h2>
+    <label>Tourname</label>
+    <input id="tourName">
+    <label>Tournummer</label>
+    <input id="tourNumber">
+    <button class="primary" id="saveTour">Tour speichern</button>
+  </div>
+
+  <div class="card">
+    <h2>Stopp hinzufügen</h2>
+    <input id="newName" placeholder="Name">
+    <input id="newType" placeholder="Apotheke oder Optiker" value="Apotheke">
+    <input id="newAddr" placeholder="Adresse">
+    <input id="newBarcode" placeholder="Barcode">
+    <input id="newKey" placeholder="Schlüsselnummer">
+    <input id="newColor" placeholder="Schlüsselfarbe (z.B. Gelb)">
+    <input id="newCoord" placeholder="GPS-Koordinaten optional">
+    <button class="primary" id="add">Stopp hinzufügen</button>
+  </div>
+
+  <h2>Stopps bearbeiten</h2>
+  <div id="stops"></div>
+
+  <div class="card">
+    <h2>Admin-PIN ändern</h2>
+    <input id="newPin" type="password" placeholder="Neue PIN">
+    <button class="primary" id="savePin">PIN speichern</button>
+  </div>
+
+  <button class="back" onclick="location.href='./'">⬅ Zur App</button>
+</div>
+
+<script>
+const DEFAULT_STOPS=[{"id": 1, "name": "Einhorn-Apotheke", "addr": "Franz-Marc-Str. 6, 80637 München", "coord": "11.5312,48.1612,0", "barcode": "918131", "color": "Grün", "key": "1355", "type": "Apotheke"}, {"id": 2, "name": "Augenstern Optik", "addr": "Sternstr. 26, 80538 München", "coord": "11.5878,48.1411,0", "barcode": "801227", "color": "Blau", "key": "3430", "type": "Optiker"}, {"id": 3, "name": "Apotheke am Hirschbach", "addr": "Hauptstr. 22, 85659 Forstern", "coord": "11.9868,48.1792,0", "barcode": "895384", "color": "Blau", "key": "4462", "type": "Apotheke"}, {"id": 4, "name": "St.-Zeno-Apotheke", "addr": "St.-Zeno-Platz 4, 84424 Isen", "coord": "12.0538,48.1824,0", "barcode": "916575", "color": "Blau", "key": "2154", "type": "Apotheke"}, {"id": 5, "name": "Löwen-Apotheke", "addr": "Münchener Str. 15, 83527 Haag i. OB", "coord": "12.1812,48.161,0", "barcode": "918376", "color": "Blau", "key": "1586", "type": "Apotheke"}, {"id": 6, "name": "Grafschaft-Apotheke", "addr": "Hauptstr. 40, 83527 Haag i. OB", "coord": "12.1852,48.1619,0", "barcode": "918375", "color": "Blau", "key": "1586", "type": "Apotheke"}, {"id": 7, "name": "Moderne Augenoptik", "addr": "Route 7, 83527 Haag i. OB", "coord": "12.175,48.158,0", "barcode": "800859", "color": "Gelb", "key": "3431", "type": "Optiker"}, {"id": 8, "name": "Lichtschmiede", "addr": "Hauptstr. 6, 83527 Haag i. OB", "coord": "12.1835,48.1615,0", "barcode": "800860", "color": "Blau", "key": "3430", "type": "Optiker"}, {"id": 9, "name": "St.-Ulrich-Apotheke", "addr": "Hauptstr. 8, 83536 Gars am Inn", "coord": "12.2778,48.1554,0", "barcode": "916491", "color": "Blau", "key": "1586", "type": "Apotheke"}, {"id": 10, "name": "Sonnen Apotheke", "addr": "Wasserburger Str. 19, 83530 Schnaitsee", "coord": "12.3861,48.0645,0", "barcode": "914072", "color": "Orange", "key": "1579", "type": "Apotheke"}, {"id": 11, "name": "Alz Apotheke", "addr": "Herzog-Ludwig-Str. 7, 83308 Trostberg", "coord": "12.5518,48.0051,0", "barcode": "918357", "color": "Orange", "key": "6434", "type": "Apotheke"}, {"id": 12, "name": "Optik Girr & Steger", "addr": "Hauptstr. 15, 83308 Trostberg", "coord": "12.5532,48.0039,0", "barcode": "800837", "color": "Blau", "key": "3430", "type": "Optiker"}, {"id": 13, "name": "Trieb Optik", "addr": "Hauptstr. 21, 83308 Trostberg", "coord": "12.5535,48.0035,0", "barcode": "800838", "color": "Blau", "key": "3430", "type": "Optiker"}, {"id": 14, "name": "Augenoptik Weindl", "addr": "Hauptstr. 38, 83308 Trostberg", "coord": "12.554,48.0022,0", "barcode": "803502", "color": "Grün", "key": "1935", "type": "Optiker"}, {"id": 15, "name": "Johannes-Apotheke", "addr": "Trostberger Str. 6, 83342 Tacherting", "coord": "12.5645,48.0805,0", "barcode": "916462", "color": "Gelb", "key": "1571", "type": "Apotheke"}, {"id": 16, "name": "Pauls Brillen", "addr": "Nikolausstr. 5, 84518 Garching an der Alz", "coord": "12.5802,48.1322,0", "barcode": "800832", "color": "Pink", "key": "3432", "type": "Optiker"}, {"id": 17, "name": "Nikolaus-Apotheke", "addr": "Nikolausstr. 9, 84518 Garching an der Alz", "coord": "12.5804,48.132,0", "barcode": "918465", "color": "Blau", "key": "1568", "type": "Apotheke"}, {"id": 18, "name": "Brunnen Apotheke", "addr": "Mitterweg 42, 84518 Garching an der Alz", "coord": "12.585,48.125,0", "barcode": "901732", "color": "Gelb", "key": "1562", "type": "Apotheke"}, {"id": 19, "name": "Eulen-Apotheke", "addr": "Frank-Caro-Str. 35, 84518 Garching an der Alz", "coord": "12.592,48.118,0", "barcode": "918464", "color": "—", "key": "Kein Schlüssel", "type": "Apotheke"}, {"id": 20, "name": "Optik Steckbauer", "addr": "Martin-Ofner-Str. 11, 84508 Burgkirchen an der Alz", "coord": "12.7242,48.1691,0", "barcode": "800826", "color": "Blau", "key": "3430", "type": "Optiker"}, {"id": 21, "name": "Bärenapotheke", "addr": "Martin-Ofner-Str. 10, 84508 Burgkirchen an der Alz", "coord": "12.724,48.1692,0", "barcode": "916599", "color": "Blau", "key": "4098", "type": "Apotheke"}, {"id": 22, "name": "Borromäus Apotheke", "addr": "Max-Planck-Platz 12, 84508 Burgkirchen an der Alz", "coord": "12.731,48.1645,0", "barcode": "918462", "color": "Blau", "key": "4098", "type": "Apotheke"}, {"id": 23, "name": "Optik Wittmann", "addr": "Martin-Ofner-Str. 3, 84508 Burgkirchen an der Alz", "coord": "12.7238,48.1695,0", "barcode": "800827", "color": "Gelb", "key": "3431", "type": "Optiker"}, {"id": 24, "name": "Johannes-Apotheke", "addr": "Untere Dorfstr. 6, 84547 Emmerting", "coord": "12.7534,48.1812,0", "barcode": "916606", "color": "Pink", "key": "1557", "type": "Apotheke"}, {"id": 25, "name": "Jupiter Apotheke", "addr": "Berliner Platz 1, 84489 Burghausen", "coord": "12.8181,48.1632,0", "barcode": "916593", "color": "Grün", "key": "2354 / 2335", "type": "Apotheke"}, {"id": 26, "name": "Apollo Optik", "addr": "Robert-Koch-Str. 52, 84489 Burghausen", "coord": "12.8225,48.1661,0", "barcode": "803461", "color": "Gelb", "key": "G.S.", "type": "Optiker"}, {"id": 27, "name": "Top Optik", "addr": "Robert-Koch-Str. 54, 84489 Burghausen", "coord": "12.8227,48.1664,0", "barcode": "800825", "color": "Gelb", "key": "3431", "type": "Optiker"}, {"id": 28, "name": "Optik Lederer Rudolf", "addr": "Robert-Koch-Str. 17, 84489 Burghausen", "coord": "12.8201,48.162,0", "barcode": "800823", "color": "—", "key": "G.S.", "type": "Optiker"}, {"id": 29, "name": "Apollo-Apotheke", "addr": "Marktler Str. 33, 84489 Burghausen", "coord": "12.8262,48.1672,0", "barcode": "916590", "color": "Pink", "key": "3398", "type": "Apotheke"}, {"id": 30, "name": "Adler Apotheke", "addr": "Marktler Str. 31, 84489 Burghausen", "coord": "12.826,48.167,0", "barcode": "916589", "color": "Gelb", "key": "1572 / 1573", "type": "Apotheke"}, {"id": 31, "name": "Optik Wittmann", "addr": "Marktler Str. 17, 84489 Burghausen", "coord": "12.8248,48.1652,0", "barcode": "800820", "color": "Grün", "key": "1582", "type": "Optiker"}, {"id": 32, "name": "Optik Kronwinkler", "addr": "Marktler Str. 18, 84489 Burghausen", "coord": "12.8249,48.1654,0", "barcode": "802284", "color": "—", "key": "G.S.", "type": "Optiker"}, {"id": 33, "name": "Straßer Optik", "addr": "Marktler Str. 3B, 84489 Burghausen", "coord": "12.8235,48.1638,0", "barcode": "803832", "color": "—", "key": "G.S.", "type": "Optiker"}, {"id": 34, "name": "Apotheke im Kaufland", "addr": "Lindach 10, 84489 Burghausen", "coord": "12.813,48.1742,0", "barcode": "916591", "color": "Blau", "key": "2179", "type": "Apotheke"}];
+const DATA_KEY='firma_soltani_tour70_data';
+const PIN_KEY='firma_soltani_admin_pin';
+let stops=[];
+
+function esc(s){return String(s??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'","&#39;")}
+function load(){
+  try{const x=JSON.parse(localStorage.getItem(DATA_KEY)||'null'); stops=Array.isArray(x)&&x.length?x:DEFAULT_STOPS.slice();}
+  catch(e){stops=DEFAULT_STOPS.slice()}
+  tourName.value=localStorage.getItem('firma_soltani_tour_name')||'Tour 70';
+  tourNumber.value=localStorage.getItem('firma_soltani_tour_number')||'70';
+  render();
+}
+function render(){
+  const box=document.getElementById('stops'); box.innerHTML='';
+  stops.forEach((s,i)=>{
+    const d=document.createElement('div'); d.className='card';
+    d.innerHTML=`
+      <b>Stopp ${i+1}</b>
+      <input data-f="name" value="${esc(s.name)}">
+      <input data-f="type" value="${esc(s.type||'Apotheke')}">
+      <input data-f="addr" value="${esc(s.addr)}">
+      <input data-f="barcode" value="${esc(s.barcode||'')}">
+      <input data-f="key" value="${esc(s.key||'')}">
+      <input data-f="color" value="${esc(s.color||'')}">
+      <input data-f="coord" value="${esc(s.coord||'')}">
+      <div class="row"><button class="primary" data-save>Speichern</button><button class="danger" data-del>Löschen</button></div>`;
+    d.querySelector('[data-save]').onclick=()=>{
+      d.querySelectorAll('[data-f]').forEach(el=>s[el.dataset.f]=el.value);
+      s.id=i+1; localStorage.setItem(DATA_KEY,JSON.stringify(stops)); render();
+    };
+    d.querySelector('[data-del]').onclick=()=>{
+      if(confirm('Stopp wirklich löschen?')){stops.splice(i,1);stops.forEach((x,j)=>x.id=j+1);localStorage.setItem(DATA_KEY,JSON.stringify(stops));render();}
+    };
+    box.appendChild(d);
+  });
+}
+loginBtn.onclick=()=>{
+  const stored=localStorage.getItem(PIN_KEY)||'soltani';
+  if(pin.value!==stored){alert('Falsche PIN');return}
+  login.classList.add('hidden'); panel.classList.remove('hidden'); load();
+};
+saveTour.onclick=()=>{
+  localStorage.setItem('firma_soltani_tour_name',tourName.value);
+  localStorage.setItem('firma_soltani_tour_number',tourNumber.value);
+  alert('Tour gespeichert');
+};
+add.onclick=()=>{
+  const s={id:stops.length+1,name:newName.value,type:newType.value||'Apotheke',addr:newAddr.value,barcode:newBarcode.value,key:newKey.value,color:newColor.value,coord:newCoord.value};
+  if(!s.name||!s.addr){alert('Name und Adresse sind erforderlich.');return}
+  stops.push(s); localStorage.setItem(DATA_KEY,JSON.stringify(stops));
+  ['newName','newAddr','newBarcode','newKey','newColor','newCoord'].forEach(id=>document.getElementById(id).value='');
+  render();
+};
+savePin.onclick=()=>{
+  if(newPin.value.length<4){alert('Die PIN muss mindestens 4 Zeichen haben.');return}
+  localStorage.setItem(PIN_KEY,newPin.value); newPin.value=''; alert('PIN geändert');
+};
+</script>
+</body>
+</html>

@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111">
+<title>Firma Soltani</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#111;color:#fff;font-family:Arial,sans-serif;max-width:850px;margin:auto;padding:16px}
+h1{font-size:28px;margin:8px 0 22px} h2{margin:8px 0 18px}
+button{width:100%;padding:15px;margin:7px 0;border:0;border-radius:12px;font-size:17px;font-weight:700}
+.choice{background:#202636;color:#fff;border:1px solid #39445a}
+.primary{background:#4caf50;color:#071007}
+.back{background:#303642;color:#fff}
+.card{padding:13px;border-radius:12px;margin:9px 0;color:#000}
+.card label{display:block;font-size:17px;margin-bottom:8px}
+.card input{transform:scale(1.25);margin-right:8px}
+.apo{background:#d8f5d0} .opt{background:#dbe9ff}
+.type{font-weight:800;margin-bottom:5px}
+.details{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px;font-size:14px}
+.details span{background:rgba(255,255,255,.55);padding:5px 7px;border-radius:7px}
+#home,#tours,#stops,#nav{display:none}
+.info{color:#aeb7c7;margin-bottom:14px}
+.navbox{background:#202636;border-radius:16px;padding:18px;margin-top:15px}
+.navbox p{line-height:1.5}
+.row{display:flex;gap:8px} .row button{flex:1}
+
+.toprow{margin-bottom:8px}
+.smallbtn{font-size:14px;padding:10px}
+.tour-actions{display:flex;gap:7px;margin-top:10px}
+.tour-actions button{flex:1;font-size:14px;padding:10px}
+.formbox{background:#202636;padding:14px;border-radius:12px;margin-top:12px}
+.formbox input,.formbox select{width:100%;padding:11px;margin:5px 0;border-radius:8px;border:1px solid #555;font-size:16px}
+
+.barcodeBox{background:#fff;border-radius:8px;padding:8px;margin:9px 0;color:#000;text-align:center}
+.barcodeLabel{font-size:12px;font-weight:700;margin-bottom:4px}
+.barcode{width:100%;height:70px;display:block}
+.barcodeNumber{font-family:monospace;font-size:14px;letter-spacing:2px;margin-top:2px}
+</style>
+<link rel="manifest" href="./manifest.webmanifest">
+</head>
+<body>
+
+<section id="home">
+<h1>Firma Soltani</h1>
+<button class="choice" id="dayBtn">☀️ Tagtour</button>
+<button class="choice" id="nightBtn">🌙 Nachttour</button>
+</section>
+
+<section id="tours">
+<h2>🌙 Nachttouren</h2>
+<div id="tourList"></div>
+<button class="back" id="backHome1">⬅ Zur Startseite</button>
+</section>
+
+<section id="stops">
+<div class="toprow"><button class="back smallbtn" id="backTours">⬅ Zur Tourenliste</button></div>
+<h2>Tour 70</h2>
+<p class="info">☑ = Ware vorhanden und Stopp wird angefahren.</p>
+<div id="stopList"></div>
+<button class="primary" id="start">🚐 Tour starten</button>
+<button class="back" id="backHome2">⬅ Zurück</button>
+</section>
+
+<section id="nav">
+<div class="navbox">
+<h2 id="count"></h2>
+<div id="type" class="type"></div>
+<h2 id="name"></h2>
+<p id="addr"></p>
+</div>
+<button class="primary" id="maps">🧭 Navigation starten</button>
+<div class="row">
+<button class="back" id="prev">⬅ Zurück</button>
+<button class="primary" id="next">➡ Weiter</button>
+</div>
+</section>
+
+<script>
+const DEFAULT_STOPS = [{"id": 1, "name": "Einhorn-Apotheke", "addr": "Franz-Marc-Str. 6, 80637 München", "coord": "11.5312,48.1612,0", "barcode": "918131", "color": "Grün", "key": "1355", "type": "Apotheke"}, {"id": 2, "name": "Augenstern Optik", "addr": "Sternstr. 26, 80538 München", "coord": "11.5878,48.1411,0", "barcode": "801227", "color": "Blau", "key": "3430", "type": "Optiker"}, {"id": 3, "name": "Apotheke am Hirschbach", "addr": "Hauptstr. 22, 85659 Forstern", "coord": "11.9868,48.1792,0", "barcode": "895384", "color": "Blau", "key": "4462", "type": "Apotheke"}, {"id": 4, "name": "St.-Zeno-Apotheke", "addr": "St.-Zeno-Platz 4, 84424 Isen", "coord": "12.0538,48.1824,0", "barcode": "916575", "color": "Blau", "key": "2154", "type": "Apotheke"}, {"id": 5, "name": "Löwen-Apotheke", "addr": "Münchener Str. 15, 83527 Haag i. OB", "coord": "12.1812,48.161,0", "barcode": "918376", "color": "Blau", "key": "1586", "type": "Apotheke"}, {"id": 6, "name": "Grafschaft-Apotheke", "addr": "Hauptstr. 40, 83527 Haag i. OB", "coord": "12.1852,48.1619,0", "barcode": "918375", "color": "Blau", "key": "1586", "type": "Apotheke"}, {"id": 7, "name": "Moderne Augenoptik", "addr": "Route 7, 83527 Haag i. OB", "coord": "12.175,48.158,0", "barcode": "800859", "color": "Gelb", "key": "3431", "type": "Optiker"}, {"id": 8, "name": "Lichtschmiede", "addr": "Hauptstr. 6, 83527 Haag i. OB", "coord": "12.1835,48.1615,0", "barcode": "800860", "color": "Blau", "key": "3430", "type": "Optiker"}, {"id": 9, "name": "St.-Ulrich-Apotheke", "addr": "Hauptstr. 8, 83536 Gars am Inn", "coord": "12.2778,48.1554,0", "barcode": "916491", "color": "Blau", "key": "1586", "type": "Apotheke"}, {"id": 10, "name": "Sonnen Apotheke", "addr": "Wasserburger Str. 19, 83530 Schnaitsee", "coord": "12.3861,48.0645,0", "barcode": "914072", "color": "Orange", "key": "1579", "type": "Apotheke"}, {"id": 11, "name": "Alz Apotheke", "addr": "Herzog-Ludwig-Str. 7, 83308 Trostberg", "coord": "12.5518,48.0051,0", "barcode": "918357", "color": "Orange", "key": "6434", "type": "Apotheke"}, {"id": 12, "name": "Optik Girr & Steger", "addr": "Hauptstr. 15, 83308 Trostberg", "coord": "12.5532,48.0039,0", "barcode": "800837", "color": "Blau", "key": "3430", "type": "Optiker"}, {"id": 13, "name": "Trieb Optik", "addr": "Hauptstr. 21, 83308 Trostberg", "coord": "12.5535,48.0035,0", "barcode": "800838", "color": "Blau", "key": "3430", "type": "Optiker"}, {"id": 14, "name": "Augenoptik Weindl", "addr": "Hauptstr. 38, 83308 Trostberg", "coord": "12.554,48.0022,0", "barcode": "803502", "color": "Grün", "key": "1935", "type": "Optiker"}, {"id": 15, "name": "Johannes-Apotheke", "addr": "Trostberger Str. 6, 83342 Tacherting", "coord": "12.5645,48.0805,0", "barcode": "916462", "color": "Gelb", "key": "1571", "type": "Apotheke"}, {"id": 16, "name": "Pauls Brillen", "addr": "Nikolausstr. 5, 84518 Garching an der Alz", "coord": "12.5802,48.1322,0", "barcode": "800832", "color": "Pink", "key": "3432", "type": "Optiker"}, {"id": 17, "name": "Nikolaus-Apotheke", "addr": "Nikolausstr. 9, 84518 Garching an der Alz", "coord": "12.5804,48.132,0", "barcode": "918465", "color": "Blau", "key": "1568", "type": "Apotheke"}, {"id": 18, "name": "Brunnen Apotheke", "addr": "Mitterweg 42, 84518 Garching an der Alz", "coord": "12.585,48.125,0", "barcode": "901732", "color": "Gelb", "key": "1562", "type": "Apotheke"}, {"id": 19, "name": "Eulen-Apotheke", "addr": "Frank-Caro-Str. 35, 84518 Garching an der Alz", "coord": "12.592,48.118,0", "barcode": "918464", "color": "—", "key": "Kein Schlüssel", "type": "Apotheke"}, {"id": 20, "name": "Optik Steckbauer", "addr": "Martin-Ofner-Str. 11, 84508 Burgkirchen an der Alz", "coord": "12.7242,48.1691,0", "barcode": "800826", "color": "Blau", "key": "3430", "type": "Optiker"}, {"id": 21, "name": "Bärenapotheke", "addr": "Martin-Ofner-Str. 10, 84508 Burgkirchen an der Alz", "coord": "12.724,48.1692,0", "barcode": "916599", "color": "Blau", "key": "4098", "type": "Apotheke"}, {"id": 22, "name": "Borromäus Apotheke", "addr": "Max-Planck-Platz 12, 84508 Burgkirchen an der Alz", "coord": "12.731,48.1645,0", "barcode": "918462", "color": "Blau", "key": "4098", "type": "Apotheke"}, {"id": 23, "name": "Optik Wittmann", "addr": "Martin-Ofner-Str. 3, 84508 Burgkirchen an der Alz", "coord": "12.7238,48.1695,0", "barcode": "800827", "color": "Gelb", "key": "3431", "type": "Optiker"}, {"id": 24, "name": "Johannes-Apotheke", "addr": "Untere Dorfstr. 6, 84547 Emmerting", "coord": "12.7534,48.1812,0", "barcode": "916606", "color": "Pink", "key": "1557", "type": "Apotheke"}, {"id": 25, "name": "Jupiter Apotheke", "addr": "Berliner Platz 1, 84489 Burghausen", "coord": "12.8181,48.1632,0", "barcode": "916593", "color": "Grün", "key": "2354 / 2335", "type": "Apotheke"}, {"id": 26, "name": "Apollo Optik", "addr": "Robert-Koch-Str. 52, 84489 Burghausen", "coord": "12.8225,48.1661,0", "barcode": "803461", "color": "Gelb", "key": "G.S.", "type": "Optiker"}, {"id": 27, "name": "Top Optik", "addr": "Robert-Koch-Str. 54, 84489 Burghausen", "coord": "12.8227,48.1664,0", "barcode": "800825", "color": "Gelb", "key": "3431", "type": "Optiker"}, {"id": 28, "name": "Optik Lederer Rudolf", "addr": "Robert-Koch-Str. 17, 84489 Burghausen", "coord": "12.8201,48.162,0", "barcode": "800823", "color": "—", "key": "G.S.", "type": "Optiker"}, {"id": 29, "name": "Apollo-Apotheke", "addr": "Marktler Str. 33, 84489 Burghausen", "coord": "12.8262,48.1672,0", "barcode": "916590", "color": "Pink", "key": "3398", "type": "Apotheke"}, {"id": 30, "name": "Adler Apotheke", "addr": "Marktler Str. 31, 84489 Burghausen", "coord": "12.826,48.167,0", "barcode": "916589", "color": "Gelb", "key": "1572 / 1573", "type": "Apotheke"}, {"id": 31, "name": "Optik Wittmann", "addr": "Marktler Str. 17, 84489 Burghausen", "coord": "12.8248,48.1652,0", "barcode": "800820", "color": "Grün", "key": "1582", "type": "Optiker"}, {"id": 32, "name": "Optik Kronwinkler", "addr": "Marktler Str. 18, 84489 Burghausen", "coord": "12.8249,48.1654,0", "barcode": "802284", "color": "—", "key": "G.S.", "type": "Optiker"}, {"id": 33, "name": "Straßer Optik", "addr": "Marktler Str. 3B, 84489 Burghausen", "coord": "12.8235,48.1638,0", "barcode": "803832", "color": "—", "key": "G.S.", "type": "Optiker"}, {"id": 34, "name": "Apotheke im Kaufland", "addr": "Lindach 10, 84489 Burghausen", "coord": "12.813,48.1742,0", "barcode": "916591", "color": "Blau", "key": "2179", "type": "Apotheke"}];
+const TOUR_KEY='firma_soltani_tour70_data';
+const CHECK_KEY='firma_soltani_tour70_checks';
+let stops = loadStops();
+let route=[],idx=0;
+
+const home=document.getElementById('home');
+const tours=document.getElementById('tours');
+const stopsPage=document.getElementById('stops');
+const nav=document.getElementById('nav');
+
+function showOnly(el){
+  [home,tours,stopsPage,nav].forEach(x=>x.style.display='none');
+  el.style.display='block';
+}
+function esc(s){
+  return String(s??'').replaceAll('&','&amp;').replaceAll('<','&lt;')
+    .replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'","&#39;");
+}
+function loadStops(){
+  try{
+    const x=JSON.parse(localStorage.getItem(TOUR_KEY)||'null');
+    return Array.isArray(x)&&x.length ? x : DEFAULT_STOPS.slice();
+  }catch(e){return DEFAULT_STOPS.slice();}
+}
+function saveStops(){localStorage.setItem(TOUR_KEY,JSON.stringify(stops));}
+function loadChecks(){
+  try{return JSON.parse(localStorage.getItem(CHECK_KEY)||'{}')}catch(e){return {}}
+}
+function saveChecks(){
+  const a={};
+  stops.forEach(s=>{const el=document.getElementById('c'+s.id); if(el)a[s.id]=el.checked;});
+  localStorage.setItem(CHECK_KEY,JSON.stringify(a));
+}
+function clearChecks(){
+  localStorage.removeItem(CHECK_KEY);
+  document.querySelectorAll('#stops input[type=checkbox]').forEach(x=>x.checked=false);
+}
+function renderTours(){
+  const box=document.getElementById('tourList');
+  box.innerHTML='';
+  const card=document.createElement('div');
+  card.className='card';
+  card.style.background='#202636'; card.style.color='#fff';
+  card.innerHTML=`<strong>Tour 70</strong><br>
+    <span class="info">Nachtfahrt · ${stops.length} Stopps</span>
+    <div class="tour-actions">
+      <button class="primary" id="openNight70">Tour öffnen</button>
+      <button class="back" id="manageNight70">Stopps verwalten</button>
+    </div>`;
+  box.appendChild(card);
+  document.getElementById('openNight70').onclick=()=>openStops();
+  document.getElementById('manageNight70').onclick=()=>openStops();
+}
+function renderStops(){
+  const list=document.getElementById('stopList');
+  if(!list)return;
+  const checks=loadChecks();
+  list.innerHTML='';
+  stops.forEach(s=>{
+    const div=document.createElement('div');
+    div.className='card '+(s.type==='Optiker'?'opt':'apo');
+    div.innerHTML=`<label><input type="checkbox" id="c${s.id}" ${checks[s.id]?'checked':''}>
+      <b>${String(s.id).padStart(2,'0')}. ${esc(s.name)}</b></label>
+      <div class="type">${esc(s.type)}</div>
+      <div>${esc(s.addr)}</div>
+      <div class="barcodeBox"><div class="barcodeLabel">Barcode scannen</div><svg class="barcode" data-barcode="${esc(s.barcode||'')}"></svg><div class="barcodeNumber">${esc(s.barcode||'—')}</div></div>
+      <div class="details">
+        <span>Barcode: <b>${esc(s.barcode||'—')}</b></span>
+        <span>Schlüssel: <b>${esc(s.key||'—')}</b></span>
+        <span>Farbe: <b>${esc(s.color||'—')}</b></span>
+      </div>`;
+    list.appendChild(div);
+  });
+  list.querySelectorAll('input[type=checkbox]').forEach(x=>x.onchange=saveChecks);
+  list.querySelectorAll('svg.barcode').forEach(svg=>renderBarcode(svg.dataset.barcode,svg));
+  list.querySelectorAll('.deleteStop').forEach(b=>b.onclick=()=>deleteStop(Number(b.dataset.stopId)));
+}
+
+function renderBarcode(value, svg){
+  if(!value || !/^[\x20-\x7E]+$/.test(value)) return;
+  const codes=[104]; // Start Code B
+  for(let i=0;i<value.length;i++) codes.push(value.charCodeAt(i)-32);
+  let checksum=104;
+  for(let i=0;i<value.length;i++) checksum += (value.charCodeAt(i)-32)*(i+1);
+  codes.push(checksum%103,106); // checksum + stop
+
+  const patterns=[
+"212222","222122","222221","121223","121322","131222","122213","122312","132212","221213",
+"221312","231212","112232","122132","122231","113222","123122","123221","223211","221132",
+"221231","213212","223112","312131","311222","321122","321221","312212","322112","322211",
+"212123","212321","232121","111323","131123","131321","112313","132113","132311","211313",
+"231113","231311","112133","112331","132131","113123","113321","133121","313121","211331",
+"231131","213113","213311","213131","311123","311321","331121","312113","312311","332111",
+"314111","221411","431111","111224","111422","121124","121421","141122","141221","112214",
+"112412","122114","122411","142112","142211","241211","221114","413111","241112","134111",
+"111242","121142","121241","114212","124112","124211","411212","421112","421211","212141",
+"214121","412121","111143","111341","131141","114113","114311","411113","411311","113141",
+"114131","311141","411131","211412","211214","211232","2331112"
+  ];
+  let x=10, bars='';
+  const unit=2;
+  codes.forEach(c=>{
+    const p=patterns[c];
+    let black=true;
+    for(const ch of p){
+      const w=parseInt(ch,10)*unit;
+      if(black) bars += `<rect x="${x}" y="4" width="${w}" height="54"></rect>`;
+      x += w; black=!black;
+    }
+  });
+  svg.setAttribute('viewBox',`0 0 ${x+10} 62`);
+  svg.setAttribute('preserveAspectRatio','none');
+  svg.innerHTML=bars;
+}
+
+function openStops(){
+  showOnly(stopsPage);
+  renderStops();
+}
+function addStop(){
+  const name=prompt('Name des Ziels:'); if(!name)return;
+  const addr=prompt('Adresse:'); if(!addr)return;
+  const type=prompt('Ortstyp: Apotheke oder Optiker','Apotheke')||'Apotheke';
+  const barcode=prompt('Barcode (optional):','')||'';
+  const key=prompt('Schlüsselnummer (optional):','')||'';
+  const color=prompt('Farbe (optional):','')||'';
+  stops.push({id:stops.length+1,name,addr,coord:'',type,barcode,key,color});
+  saveStops(); renderTours(); renderStops();
+}
+
+document.getElementById('dayBtn').onclick=()=>alert('Die Tagtour wird ergänzt.');
+document.getElementById('nightBtn').onclick=()=>{renderTours();showOnly(tours);};
+document.getElementById('backHome1').onclick=()=>showOnly(home);
+document.getElementById('backTours').onclick=()=>{saveChecks();renderTours();showOnly(tours);};
+
+document.getElementById('start').onclick=()=>{
+  saveChecks();
+  route=stops.filter(s=>document.getElementById('c'+s.id)?.checked);
+  if(!route.length){alert('Bitte mindestens einen Stopp anhaken.');return;}
+  idx=0;showOnly(nav);showNav();
+};
+function showNav(){
+  const s=route[idx];
+  document.getElementById('count').textContent='Stopp '+(idx+1)+' von '+route.length;
+  document.getElementById('type').textContent=s.type;
+  document.getElementById('name').textContent=s.name;
+  document.getElementById('addr').innerHTML=esc(s.addr)+'<br><br><b>Barcode:</b> '+esc(s.barcode||'—')+
+    '<br>Schlüssel: '+esc(s.key||'—')+'<br>Farbe: '+esc(s.color||'—');
+  document.getElementById('prev').disabled=idx===0;
+}
+document.getElementById('maps').onclick=()=>{
+  const s=route[idx];
+  window.open('https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(s.coord||s.addr),'_blank');
+};
+document.getElementById('prev').onclick=()=>{if(idx>0){idx--;showNav();}};
+document.getElementById('next').onclick=()=>{
+  idx++;
+  if(idx>=route.length){
+    alert('🎉 Tour beendet');
+    clearChecks(); renderStops(); showOnly(stopsPage); return;
+  }
+  showNav();
+};
+showOnly(home);
+renderTours();
+</script>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => navigator.serviceWorker.register("./service-worker.js"));
+}
+</script>
+</body>
+</html>
